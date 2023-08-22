@@ -14,11 +14,11 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    rc = sqlite3_exec(db,"create table if not exist",NULL,NULL, &err);
-    if (rc != SQLITE_OK) {
-        perror(err);
-        return EXIT_FAILURE;
-    }
+    // rc = sqlite3_exec(db,"create table if not exist",NULL,NULL, &err);
+    // if (rc != SQLITE_OK) {
+    //     perror(err);
+    //     return EXIT_FAILURE;
+    // }
     sqlite3_close(db);
     return  EXIT_SUCCESS;
 }
