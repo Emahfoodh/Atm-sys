@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sqlite3.h>
 
+static sqlite3* db;
 
 struct User {
     uint64_t id;
@@ -63,3 +65,10 @@ void createNewAcc(struct User u);
 void mainMenu(struct User u);
 void checkAllAccounts(struct User u);
 void updateAccountInfo(struct User u);
+
+// sql
+int callback(void *data, int rowsCount, char **rowsValues, char **coulmnNames);
+char* sql_connect();
+
+// file
+long file_size(const char* fileName);

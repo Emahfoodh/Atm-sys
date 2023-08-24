@@ -1,4 +1,4 @@
-objects = src/main.o src/system.o src/auth.o
+objects = src/main.o src/system.o src/auth.o src/sql.o src/f.o
 
 atm : $(objects)
 	cc -o atm $(objects) -lsqlite3
@@ -13,4 +13,7 @@ files.o : src/header.h
 utils.o : src/header.h
 
 clean :
-	rm -f $(objects)
+	rm -f $(objects) atm *.plist
+
+analyze : 
+	clang --analyze src/*.c
