@@ -7,6 +7,7 @@ long file_size(const char* fileName) {
         return -1;
     }
     fseek(f, 0, SEEK_END);
+    long size = ftell(f);
     fclose(f);
-    return ftell(f);
+    return size;
 }
