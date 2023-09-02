@@ -67,11 +67,14 @@ void checkAllAccounts(struct User u);
 void updateAccountInfo(struct User u);
 
 // sql
-int callback(void *data, int rowsCount, char **rowsValues, char **coulmnNames);
+int usercallback(void *data, int rowsCount, char **rowsValues, char **coulmnNames);
 char* sql_connect();
 char* sql_insert_user(char* username, char* password);
-char* sql_select_user(char* username);
-char* sql_delete_user(char* username);
+struct User sql_select_user(char* username);
+char* sql_delete_user(struct User user);
+char* sql_create_account(struct User user,char* type, double balance, char* country, char* phone);
 
 // file
 long file_size(const char* fileName);
+
+void printUser(struct User user);
