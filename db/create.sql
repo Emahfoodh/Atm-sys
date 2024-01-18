@@ -5,7 +5,7 @@ CREATE TABLE Users (
     active BOOLEAN DEFAULT 1 NOT NULL
 );
 CREATE TABLE Accounts (
-    account_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     type VARCHAR(7) NOT NULL CHECK (
         type IN (

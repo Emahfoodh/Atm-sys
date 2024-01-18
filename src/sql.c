@@ -1,10 +1,11 @@
 #include "header.h"
-// #include <cstring>
 #include <stdbool.h>
 #include <stdio.h>
-// #include <inttypes.h> //for PRIu64
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+
 
 #define DB_PATH "db/atm.db"
 
@@ -30,32 +31,43 @@ int usercallback(void *data, int rowsCount, char **rowsValues, char **columnName
 }
 
 // Connect to the database
-char* sql_connect(void) {
+void sql_connect(void) {
+    if (access(DB_PATH, F_OK) == -1) {
+        printf("Database file does not exist.\n");
+        exit(1);
+    }
+
     char* err = NULL;
     int rc = sqlite3_open(DB_PATH, &db);
     if (rc != SQLITE_OK) {
         err = (char*)sqlite3_errmsg(db);
+        printf("Error connecting to database: %s\n", err);
+        free(err);
         sqlite3_close(db);
-        return err;
+        exit(1);
     }
-    return err;
 }
 
-
 // Create new user
-char* sql_insert_user(char* username, char* password) {
+bool sql_insert_user(struct User newUser) {
     char* rcerr = NULL;
     // char* err = NULL;
     char sql[250];
-    sprintf(sql,"INSERT INTO Users (name,password) VALUES ('%s', '%s');",username,password);
+    sprintf(sql,"INSERT INTO Users (name,password) VALUES ('%s', '%s');",newUser.name,newUser.password);
     int rc = sqlite3_exec(db, sql, NULL, NULL, &rcerr);
     if (rc != SQLITE_OK) {
-        // err = (char*)sqlite3_errmsg(db);
-        // sqlite3_free(rcerr);
-        sqlite3_close(db);
-        return rcerr; // dont forget to free when calling
+        if (rc == 19)
+        {
+            printf("User already exist\n");
+            sleep(2);
+            sqlite3_free(rcerr);
+            return false;  
+        }
+        printf("Error inserting user: %s\n", rcerr);
+        sqlite3_free(rcerr);
+        return false; 
     }
-    return NULL;
+    return true;
 }
 
 // for loging but needs also a password

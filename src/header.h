@@ -1,8 +1,5 @@
 #include<stdint.h>
 #include<stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sqlite3.h>
 
 static sqlite3* db;
@@ -61,6 +58,7 @@ void registerMenu(char a[50], char pass[50]);
 const char *getPassword(struct User u);
 
 // system function
+void registerUser();
 void createNewAcc(struct User u);
 void mainMenu(struct User u);
 void checkAllAccounts(struct User u);
@@ -68,8 +66,8 @@ void updateAccountInfo(struct User u);
 
 // sql
 int usercallback(void *data, int rowsCount, char **rowsValues, char **coulmnNames);
-char* sql_connect();
-char* sql_insert_user(char* username, char* password);
+void sql_connect();
+bool sql_insert_user(struct User newUser);
 struct User sql_select_user(char* username);
 char* sql_delete_user(struct User user);
 char* sql_create_account(struct User user,char* type, double balance, char* country, char* phone);
@@ -78,3 +76,9 @@ char* sql_create_account(struct User user,char* type, double balance, char* coun
 long file_size(const char* fileName);
 
 void printUser(struct User user);
+
+char* readString(char* print);
+
+void readPassword(char pass[50]);
+
+void flushInputBuffer();

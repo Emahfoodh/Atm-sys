@@ -1,19 +1,24 @@
-objects = src/main.o src/system.o src/auth.o src/sql.o src/f.o
+# Specify the directory for object files
+OBJ_DIR := target
+
+# List of object files
+objects := $(addprefix $(OBJ_DIR)/, main.o system.o auth.o sql.o f.o)
 
 atm : $(objects)
-	cc -o atm $(objects) -lsqlite3
+	$(CC) -o $@ $^ -lncurses -lsqlite3
 
-# main.o : src/header.h
-# kbd.o : src/header.h
-# command.o : src/header.h
-# display.o : src/header.h
-# insert.o : src/header.h
-# search.o : src/header.h
-# files.o : src/header.h
-# utils.o : src/header.h
+# Rule for compiling object files
+$(OBJ_DIR)/%.o: src/%.c src/header.h | $(OBJ_DIR)
+	$(CC) -c $< -o $@
+
+# Create the object directory if it does not exist
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
 clean :
-	rm -f $(objects) atm *.plist
+	rm -f $(objects)
+	rmdir $(OBJ_DIR)
+	rm -f atm
 
 analyze : 
 	clang --analyze src/*.c
