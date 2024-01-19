@@ -10,25 +10,14 @@
 #define DB_PATH "db/atm.db"
 
 static char* sql_update(char* key,char* newvalue,char* table, char* columnName);
-
-int usercallback(void *data, int rowsCount, char **rowsValues, char **columnNames) {
-    struct User *user = (struct User *)data;
-    for (int i = 0; i < rowsCount; i++) {
-        if (strcmp(columnNames[i], "user_id") == 0) {
-            user->id = strtoull(rowsValues[i], NULL, 10);
-        } else if (strcmp(columnNames[i], "name") == 0) {
-            strcpy(user->name, rowsValues[i]);
-        } else if (strcmp(columnNames[i], "password") == 0) {
-            strcpy(user->password, rowsValues[i]);
-        } else if (strcmp(columnNames[i], "active") == 0) {
-            user->Active = (strcmp(rowsValues[i], "1") == 0);
-        }
-        // else {
-        //     printf("%s = %s\n", columnNames[i], rowsValues[i] ? rowsValues[i] : "NULL");
-        // }
-    }
-    return 0;
-}
+int usercallback(void *data, int rowsCount, char **rowsValues, char **coulmnNames);
+const char* AccountTypeStrings[NumAccountTypes] = {
+    "fixed01",
+    "fixed02",
+    "fixed03",
+    "saving",
+    "current"
+};
 
 // Connect to the database
 void sql_connect(void) {
@@ -86,6 +75,34 @@ struct User sql_select_user(char* username) {
         return user;
     }
     return user;
+}
+
+// Create new account
+bool sql_create_account(struct User user, struct Account acc) {
+    char user_id[21];
+    sprintf(user_id, "%lu", user.id); // convert from uint64 to string
+
+    // char date[11];
+    // getCurrentDate(date);
+
+    
+    char* rcerr = NULL;
+    char sql[250];
+    sprintf(sql, "INSERT INTO Accounts (user_id, type, date, balance, country, phone) VALUES ('%s', '%s', '%s', %.3f, '%s', '%lld');",
+        user_id,
+        AccountTypeStrings[acc.type],
+        acc.date,
+        acc.balance,
+        acc.country,
+        acc.phone);
+
+    int rc = sqlite3_exec(db, sql, NULL, NULL, &rcerr);
+    if (rc != SQLITE_OK) {
+        printf("Error creating account: %s\n", rcerr);
+        sqlite3_free(rcerr);
+        return false;
+    }
+    return true;
 }
 
 // char* get_primary_key(const char* table) {
@@ -165,27 +182,6 @@ char* sql_delete_user(struct User user) {
     return NULL;
 }
 
-// Create new account
-char* sql_create_account(struct User user,char* type, double balance, char* country, char* phone) {
-    char user_id[21];
-    sprintf(user_id, "%lu", user.id); // convert from uint64 to string
-    // printf("%s\n",user_id);
-    time_t current_time = time(NULL);
-    char date[11];
-    strftime(date, sizeof(date), "%Y-%m-%d", localtime(&current_time));
-    // printf("%s\n",date);
-    
-    char* rcerr = NULL;
-    char sql[250];
-    sprintf(sql, "INSERT INTO Accounts (user_id, type, date, balance, country, phone) VALUES ('%s', '%s', '%s', %.3f, '%s', '%s');", user_id, type, date, balance, country, phone);
-    int rc = sqlite3_exec(db, sql, NULL, NULL, &rcerr);
-    if (rc != SQLITE_OK) {
-        sqlite3_close(db);
-        return rcerr; // dont forget to free when calling
-    }
-    return NULL;
-}
-
 char* sql_update_account(uint64_t account_id, char* to_update) {
     if (strcmp(to_update, "country") != 0 && strcmp(to_update, "phone") != 0 ) {
         return "Error: can only update country or phone number.";
@@ -197,6 +193,25 @@ char* sql_update_account(uint64_t account_id, char* to_update) {
     //     return err;
     // }
     // return NULL;
+}
+
+int usercallback(void *data, int rowsCount, char **rowsValues, char **columnNames) {
+    struct User *user = (struct User *)data;
+    for (int i = 0; i < rowsCount; i++) {
+        if (strcmp(columnNames[i], "user_id") == 0) {
+            user->id = strtoull(rowsValues[i], NULL, 10);
+        } else if (strcmp(columnNames[i], "name") == 0) {
+            strcpy(user->name, rowsValues[i]);
+        } else if (strcmp(columnNames[i], "password") == 0) {
+            strcpy(user->password, rowsValues[i]);
+        } else if (strcmp(columnNames[i], "active") == 0) {
+            user->Active = (strcmp(rowsValues[i], "1") == 0);
+        }
+        // else {
+        //     printf("%s = %s\n", columnNames[i], rowsValues[i] ? rowsValues[i] : "NULL");
+        // }
+    }
+    return 0;
 }
 
 

@@ -1,8 +1,10 @@
 fix account id
-date only accepts date
 country 3
 update account info if both
 
 
-
+id must be entered by user
 user name must not have whitespaces
+check if balance have more that two decimal places
+make country table 
+fix succes without goto

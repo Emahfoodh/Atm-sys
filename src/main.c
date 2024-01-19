@@ -1,60 +1,62 @@
 #include "header.h"
 #include <stdlib.h>
-// #include <stdio.h>
-#include <ncurses.h>
+#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
-// void mainMenu(struct User u)
-// {
-//     int option;
-//     system("clear");
-//     printf("\n\n\t\t======= ATM =======\n\n");
-//     printf("\n\t\t-->> Feel free to choose one of the options below <<--\n");
-//     printf("\n\t\t[1]- Create a new account\n");
-//     printf("\n\t\t[2]- Update account information\n");
-//     printf("\n\t\t[3]- Check accounts\n");
-//     printf("\n\t\t[4]- Check list of owned account\n");
-//     printf("\n\t\t[5]- Make Transaction\n");
-//     printf("\n\t\t[6]- Remove existing account\n");
-//     printf("\n\t\t[7]- Transfer ownership\n");
-//     printf("\n\t\t[8]- Exit\n");
-//     scanf("%d", &option);
+void mainMenu(struct User u)
+{
+    int option;
+    system("clear");
+    printf("\n\n\t\t======= ATM =======\n\n");
+    printf("\n\t\t-->> Feel free to choose one of the options below <<--\n");
+    printf("\n\t\t[1]- Create a new account\n");
+    printf("\n\t\t[2]- Update account information\n");
+    printf("\n\t\t[3]- Check accounts\n");
+    printf("\n\t\t[4]- Check list of owned account\n");
+    printf("\n\t\t[5]- Make Transaction\n");
+    printf("\n\t\t[6]- Remove existing account\n");
+    printf("\n\t\t[7]- Transfer ownership\n");
+    printf("\n\t\t[8]- Exit\n");
+    scanf("%d", &option);
+    flushInputBuffer();
 
-//     switch (option)
-//     {
-//     case 1:
-//         createNewAcc(u);
-//         break;
-//     case 2:
-//         // student TODO : add your **Update account information** function
-//         // here
-//         break;
-//     case 3:
-//         // student TODO : add your **Check the details of existing accounts** function
-//         // here
-//         break;
-//     case 4:
-//         checkAllAccounts(u);
-//         break;
-//     case 5:
-//         // student TODO : add your **Make transaction** function
-//         // here
-//         break;
-//     case 6:
-//         // student TODO : add your **Remove existing account** function
-//         // here
-//         break;
-//     case 7:
-//         // student TODO : add your **Transfer owner** function
-//         // here
-//         break;
-//     case 8:
-//         exit(1);
-//         break;
-//     default:
-//         printf("Invalid operation!\n");
-//     }
-// };
+    switch (option)
+    {
+    case 1:
+        createNewAcc(&u);
+        break;
+    case 2:
+        // student TODO : add your **Update account information** function
+        // updateAccountInfo(&u);
+        // here
+        break;
+    case 3:
+        // student TODO : add your **Check the details of existing accounts** function
+        // here
+        break;
+    case 4:
+        // checkAllAccounts(u);
+        break;
+    case 5:
+        // student TODO : add your **Make transaction** function
+        // here
+        break;
+    case 6:
+        // student TODO : add your **Remove existing account** function
+        // here
+        break;
+    case 7:
+        // student TODO : add your **Transfer owner** function
+        // here
+        break;
+    case 8:
+        exit(1);
+        break;
+    default:
+        printf("Invalid operation!\n");
+    }
+};
 
 void startMenu(struct User *u)
 {
@@ -74,8 +76,8 @@ void startMenu(struct User *u)
         {
         case 1:
             loginMenu(u->name, u->password);
-            // if (strcmp(u->password, getPassword(*u)) == 0)
-            if (strcmp(u->password,sql_select_user(u->name).password) == 0)
+            *u = sql_select_user(u->name);
+            if (strcmp(u->password,u->password) == 0)
             {
                 printf("\n\nPassword Match!\n");
             }
@@ -101,15 +103,6 @@ void startMenu(struct User *u)
     }
 };
 
-// int main()
-// {
-//     struct User u;
-    
-//     initMenu(&u);
-//     mainMenu(u);
-//     return 0;
-// }
-
 int main() {
     // char* err = sql_connect();
     // if (err != NULL) {
@@ -120,63 +113,33 @@ int main() {
     struct User u;
     sql_connect();
     startMenu(&u);
+    mainMenu(u);
     // initscr();
     // clear();
 
-    // select user 
-    // struct User user = sql_select_user("eman");
-    // if (user.id == 0) {
-    //     printf("Error: no user \n");
-    //     return EXIT_FAILURE;
-    // } else {
-    //     printUser(user);
-    // }
-
-
-
-    // err = sql_create_account(user,"savings", 15.5, "bah", "11111111");
-    // if (err != NULL) {
-    //     printf("Error: %s\n", err);
-    //     free(err);
-    //     return EXIT_FAILURE;
-    // }
     // char* updateUser = sql_update_user(user,"Mena", "Users","name");
     // if (updateUser != NULL) {
     //     printf("Error: %s\n", updateUser);
     //     // free(err);
     //     return EXIT_FAILURE;
     // }
-    // char* insertUser = sql_insert_user("Mena", "meme");
-    // if (insertUser != NULL) {
-    //     printf("Error: %s\n", insertUser);
-    //     // free(err);
-    //     return EXIT_FAILURE;
-    // }
 
-    // delete user
-    // char* dUserErr = sql_delete_user(user);
-    // if (dUserErr != NULL) {
-    //     printf("Error: %s\n", dUserErr);
-    //     free(dUserErr);
-    //     return EXIT_FAILURE;
-    // }
     sqlite3_close(db);
     return EXIT_SUCCESS;
 }
 
 
 
-void printUser(struct User user) {
-    printf("ID: %ld\n", user.id);
-    printf("Name: %s\n", user.name);
-    printf("Password: %s\n", user.password);
-    printf("Active: %s\n", user.Active ? "true" : "false");
-}
+// void printUser(struct User user) {
+//     printf("ID: %ld\n", user.id);
+//     printf("Name: %s\n", user.name);
+//     printf("Password: %s\n", user.password);
+//     printf("Active: %s\n", user.Active ? "true" : "false");
+// }
 
 // This function is used to flush the input buffer
 void flushInputBuffer()
 {
     int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-        ; // Keep reading characters until a newline or end-of-file
+    while ((c = getchar()) != '\n' && c != EOF) {} // Keep reading characters until a newline or end-of-file
 }
