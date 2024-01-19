@@ -7,12 +7,12 @@
 void enableEcho();
 void disableEcho();
 
-void loginMenu(char a[50], char pass[50]) {
+void loginMenu(struct User* u) {
     system("clear");
     char* username = readString("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login:");
-    strcpy(a, username);
+    strcpy(u->name, username);
     free(username);
-    readPassword(pass);
+    readPassword(u->password);
 }
 
 void readPassword(char pass[50]) {

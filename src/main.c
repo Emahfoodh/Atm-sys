@@ -28,7 +28,7 @@ void mainMenu(struct User u)
         break;
     case 2:
         // student TODO : add your **Update account information** function
-        // updateAccountInfo(&u);
+        updateAccountInfo(&u);
         // here
         break;
     case 3:
@@ -75,7 +75,7 @@ void startMenu(struct User *u)
         switch (option)
         {
         case 1:
-            loginMenu(u->name, u->password);
+            loginMenu(u);
             *u = sql_select_user(u->name);
             if (strcmp(u->password,u->password) == 0)
             {

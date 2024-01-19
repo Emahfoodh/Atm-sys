@@ -9,8 +9,10 @@
 
 #define DB_PATH "db/atm.db"
 
-static char* sql_update(char* key,char* newvalue,char* table, char* columnName);
+static bool sql_update(char* key_value,char* newvalue,char* table, char* columnName);
 int usercallback(void *data, int rowsCount, char **rowsValues, char **coulmnNames);
+int accountCallback(void* data, int rowsCount, char** rowsValues, char** columnNames);
+char* get_primary_key(char* table);
 const char* AccountTypeStrings[NumAccountTypes] = {
     "fixed01",
     "fixed02",
@@ -38,17 +40,16 @@ void sql_connect(void) {
 }
 
 // Create new user
-bool sql_insert_user(struct User newUser) {
+bool sql_insert_user(struct User *newUser) {
     char* rcerr = NULL;
-    // char* err = NULL;
     char sql[250];
-    sprintf(sql,"INSERT INTO Users (name,password) VALUES ('%s', '%s');",newUser.name,newUser.password);
+    sprintf(sql,"INSERT INTO Users (name,password) VALUES ('%s', '%s');",newUser->name,newUser->password);
     int rc = sqlite3_exec(db, sql, NULL, NULL, &rcerr);
     if (rc != SQLITE_OK) {
         if (rc == 19)
         {
             printf("User already exist\n");
-            sleep(2);
+            // sleep(2);
             sqlite3_free(rcerr);
             return false;  
         }
@@ -56,6 +57,7 @@ bool sql_insert_user(struct User newUser) {
         sqlite3_free(rcerr);
         return false; 
     }
+    *newUser = sql_select_user(newUser->name);
     return true;
 }
 
@@ -71,7 +73,7 @@ struct User sql_select_user(char* username) {
         // printf("%s\n",sqlite3_errmsg(db));
         printf("%s\n",rcerr);
         sqlite3_free(rcerr);
-        sqlite3_close(db);
+        // sqlite3_close(db);
         return user;
     }
     return user;
@@ -84,11 +86,10 @@ bool sql_create_account(struct User user, struct Account acc) {
 
     // char date[11];
     // getCurrentDate(date);
-
     
     char* rcerr = NULL;
     char sql[250];
-    sprintf(sql, "INSERT INTO Accounts (user_id, type, date, balance, country, phone) VALUES ('%s', '%s', '%s', %.3f, '%s', '%lld');",
+    sprintf(sql, "INSERT INTO Accounts (user_id, type, date, balance, country, phone) VALUES ('%s', '%s', '%s', %.2f, '%s', '%lld');",
         user_id,
         AccountTypeStrings[acc.type],
         acc.date,
@@ -147,21 +148,55 @@ bool sql_create_account(struct User user, struct Account acc) {
 //     return primary_key;
 // }
 
-static char* sql_update(char* key_value,char* newvalue,char* table, char* columnName) {
+// Function to retrieve the primary key column name for a given table
+char* get_primary_key(char* table) {
+    sqlite3_stmt *stmt;
+    char* primary_key_column = NULL;
+
+    // Construct the PRAGMA statement to retrieve the primary key column name
+    char pragma_sql[100];
+    snprintf(pragma_sql, sizeof(pragma_sql), "PRAGMA table_info(%s);", table);
+
+    // Prepare and execute the PRAGMA statement
+    int rc = sqlite3_prepare_v2(db, pragma_sql, -1, &stmt, NULL);
+    if (rc == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            // Retrieve the column name and type
+            char* column_name = (char*)sqlite3_column_text(stmt, 1);
+            char* column_type = (char*)sqlite3_column_text(stmt, 2);
+
+            // Check if the column is a primary key
+            if (strcmp(column_type, "INTEGER") == 0 && sqlite3_column_int(stmt, 5) > 0) {
+                primary_key_column = strdup(column_name);
+                break;
+            }
+        }
+    }
+
+    sqlite3_finalize(stmt);
+
+    return primary_key_column;
+}
+
+static bool sql_update(char* key_value,char* newvalue,char* table, char* columnName) {
     char* rcerr = NULL;
     // char *primary_key = get_primary_key(table);
-    char *primary_key = "user_id";
+    char* primary_key = get_primary_key(table); /// make it as a function that returns the column of the primary key
     char sql[250];
     int query_length = sprintf(sql,"UPDATE %s SET %s = '%s' WHERE %s = '%s';", table, columnName, newvalue ,primary_key ,key_value);
+    free(primary_key); // Free the memory allocated for primary_key
     if (query_length == -1) {
-        return "Error Deleting user: Failed to allocate memory for query.\n";
+        printf("Failed to allocate memory for query.\n");
+        return false;
     }
     int rc = sqlite3_exec(db, sql, NULL, NULL, &rcerr);
     if (rc != SQLITE_OK) {
-        sqlite3_close(db);
-        return rcerr; // dont forget to free when calling
+        printf("Error updating: %s\n", rcerr);
+        sqlite3_free(rcerr);
+        // sqlite3_close(db);
+        return false;
     }
-    return NULL;
+    return true;
 }
 
 // static char* get_key(char* table, struct User user) {
@@ -169,30 +204,50 @@ static char* sql_update(char* key_value,char* newvalue,char* table, char* column
 // }
 
 // Inactive the user
-char* sql_delete_user(struct User user) {
+bool sql_delete_user(struct User user) {
     char user_id[21];
     int id_length = sprintf(user_id, "%lu", user.id); // convert from uint64 to string
     if (id_length == -1) {
-        return "Error Deleting user: Failed to allocate memory for query.\n";
+        printf("Error Deleting user: Failed to allocate memory for query.\n");
+        return false;
     }
-    char* err = sql_update(user_id, "0", "Users", "active");
-    if (err != NULL) {
-        return err;
+    if (!sql_update(user_id, "0", "Users", "active")) {
+        return false;
     }
-    return NULL;
+    return true;
 }
 
-char* sql_update_account(uint64_t account_id, char* to_update) {
-    if (strcmp(to_update, "country") != 0 && strcmp(to_update, "phone") != 0 ) {
-        return "Error: can only update country or phone number.";
+struct Account sql_select_account(char* acc_id)
+{
+    char* rcerr = NULL;
+    char sql[250];
+    sprintf(sql, "SELECT * FROM Accounts WHERE account_id = '%s';", acc_id);
+    struct Account account;
+    memset(&account, 0, sizeof(struct Account));
+
+   
+    int rc = sqlite3_exec(db, sql, accountCallback, &account, &rcerr);
+    if (rc != SQLITE_OK)
+    {
+        printf("%s\n", rcerr);
+        sqlite3_free(rcerr);
+        // sqlite3_close(db);
+        return account;
     }
-    // char account_id_str[21];
-    // sprintf(account_id_str, "%lu", account_id); // convert from uint64 to string
-    // char* err = sql_update(user, "0", "Users", "active");
-    // if (err != NULL) {
-    //     return err;
-    // }
-    // return NULL;
+    return account;
+}
+
+bool sql_update_account(uint64_t account_id, char* to_update, char* newValue) {
+    if (strcmp(to_update, "country") != 0 && strcmp(to_update, "phone") != 0 ) {
+        printf("Error: can only update country or phone number.");
+        return false;
+    }
+    char account_id_str[21];
+    sprintf(account_id_str, "%lu", account_id); // convert from uint64 to string
+    if (!sql_update(account_id_str, newValue, "Accounts", to_update)) {
+        return false;
+    }
+    return true;
 }
 
 int usercallback(void *data, int rowsCount, char **rowsValues, char **columnNames) {
@@ -214,6 +269,50 @@ int usercallback(void *data, int rowsCount, char **rowsValues, char **columnName
     return 0;
 }
 
+int accountCallback(void* data, int rowsCount, char** rowsValues, char** columnNames)
+{
+    struct Account* account = (struct Account*)data;
+    for (int i = 0; i < rowsCount; i++)
+    {
+        if (strcmp(columnNames[i], "account_id") == 0)
+        {
+            account->id = strtoull(rowsValues[i], NULL, 10);
+        }
+        else if (strcmp(columnNames[i], "user_id") == 0)
+        {
+            // Allocate memory for account->user if it's not already allocated
+            if (account->user == NULL)
+            {
+                account->user = malloc(sizeof(struct User));
+                account->user->id = 0; // Initialize the id field
+            }
+            // Assuming the user_id is stored as a string in the Accounts table
+            account->user->id = strtoull(rowsValues[i], NULL, 10);
+        }
+        else if (strcmp(columnNames[i], "type") == 0)
+        {
+            // Assuming the type field is stored as an integer in the Accounts table
+            account->type = (enum AccountType)atoi(rowsValues[i]);
+        }
+        else if (strcmp(columnNames[i], "balance") == 0)
+        {
+            account->balance = atof(rowsValues[i]);
+        }
+        else if (strcmp(columnNames[i], "country") == 0)
+        {
+            strcpy(account->country, rowsValues[i]);
+        }
+        else if (strcmp(columnNames[i], "phone") == 0)
+        {
+            account->phone = atoll(rowsValues[i]);
+        }
+        else if (strcmp(columnNames[i], "date") == 0)
+        {
+            strcpy(account->date, rowsValues[i]);
+        }
+    }
+    return 0;
+}
 
 // No deleting to the User Only it will be inactive
 // char* sql_delete_user(char* username) {

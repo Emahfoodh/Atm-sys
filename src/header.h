@@ -61,7 +61,7 @@ struct AccountTransfers {
 
 
 // authentication functions
-void loginMenu(char a[50], char pass[50]);
+void loginMenu(struct User* u);
 void readPassword(char pass[50]);
 // void registration(char a[50], char pass[50]);
 // void registerMenu(char a[50], char pass[50]);
@@ -69,17 +69,22 @@ void readPassword(char pass[50]);
 
 // system function
 void registerUser();
-void createNewAcc(struct User* u);
 void mainMenu(struct User u);
+void createNewAcc(struct User* u);
+void updateAccountInfo(struct User* u);
+void success(struct User u);
+void mainOrExit(struct User u);
 // void checkAllAccounts(struct User u);
 // void updateAccountInfo(struct User u);
 
 // sql
 void sql_connect();
-bool sql_insert_user(struct User newUser);
+bool sql_insert_user(struct User* newUser);
 struct User sql_select_user(char* username);
 bool sql_create_account(struct User user, struct Account acc);
-char* sql_delete_user(struct User user);
+struct Account sql_select_account(char* acc_id);
+bool sql_update_account(uint64_t account_id, char* to_update, char* newValue);
+bool sql_delete_user(struct User user);
 
 // file
 long file_size(const char* fileName);

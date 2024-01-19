@@ -5,81 +5,108 @@
 #include <unistd.h>
 #include <float.h>
 
+enum AccountType readAccountType();
+char* chooseUpdateOption();
+
 void success(struct User u)
 {
-    int option;
     printf("\n✔ Success!\n\n");
-invalid:
-    flushInputBuffer();
-    printf("Enter 1 to go to the main menu and 0 to exit!\n");
-    scanf("%d", &option);
-    system("clear");
-    if (option == 1)
-    {
-        mainMenu(u);
-    }
-    else if (option == 0)
-    {
-        exit(1);
-    }
-    else
-    {
-        printf("Insert a valid operation!\n");
-        goto invalid;
+    mainOrExit(u);
+}
+
+void mainOrExit(struct User u) {
+    int option;
+    while (1) {
+        printf("Enter 1 to go to the main menu and 0 to exit!\n");
+        scanf("%d", &option);
+        flushInputBuffer();
+        
+        if (option == 1) {
+            mainMenu(u);
+            break; // Exit the loop after mainMenu() is executed
+        }
+        else if (option == 0) {
+            exit(1);
+        }
+        else {
+            printf("Insert a valid operation!\n");
+        }
     }
 }
 
 void registerUser() 
 {
     struct User newUser;
-    do {
+    bool registRes;
     system("clear");
-    // Prompt and read the username
-    char* username = readString("\n\n\n\n\n\t\t\t\tEnter username: ");
-    strcpy(newUser.name, username);
-    free(username); // Free the dynamically allocated memory
+    do {
+        printf("\t\t\t===== Register =====\n");
+        // Prompt and read the username
+        char* username = readString("\n\n\n\n\n\t\t\t\tEnter username: ");
+        strcpy(newUser.name, username);
+        free(username); // Free the dynamically allocated memory
 
-    // Prompt and read the password
-    char password[50];
-    readPassword(password);
-    strcpy(newUser.password, password);
-    
-    } while (!sql_insert_user(newUser));
-    printf("User registered successfully!\n");
-    sleep(2);
+        // Prompt and read the password
+        char password[50];
+        readPassword(password);
+        strcpy(newUser.password, password);
+        registRes = sql_insert_user(&newUser);
+        if (!registRes) {
+            printf("Account creation failed. Please try again.\n");
+        }
+    } while (!registRes);
+    success(newUser);
 }
 
-enum AccountType readAccountType() {
-    int choice;
+void updateAccountInfo(struct User* u)
+{
 
-    printf("Select Account Type:\n");
-    printf("1. Fixed01\n");
-    printf("2. Fixed02\n");
-    printf("3. Fixed03\n");
-    printf("4. Saving\n");
-    printf("5. Current\n");
-
-    printf("Enter your choice: ");
-
-    while (1) {
-        scanf("%d", &choice);
-        flushInputBuffer();
-
-        switch (choice) {
-            case 1:
-                return AccountTypeFixed01;
-            case 2:
-                return AccountTypeFixed02;
-            case 3:
-                return AccountTypeFixed03;
-            case 4:
-                return AccountTypeSaving;
-            case 5:
-                return AccountTypeCurrent;
-            default:
-                printf("Invalid account type. Please enter a valid choice.\n");
+    char input[50];
+    bool updateRes;
+    system("clear");
+    do {
+        printf("\t\t\t===== Update Account Info =====\n");
+        printf("Enter the account ID you want to update or \\back to return: ");
+        scanf("%s", input);
+        if (strcmp(input, "\\back") == 0){
+            mainOrExit(*u);
+            return;
         }
-    }
+
+        // Call sql_select_account to retrieve the account
+        struct Account account = sql_select_account(input);
+
+        if (account.user == NULL)
+        {
+            printf("Account not found.\n");
+            return;
+        }
+    
+        if (account.user->id != u->id)
+        {
+            printf("The account does not belong to the user.\n");
+            return;
+        }    
+
+        char* to_update = chooseUpdateOption();
+        char* newValue;
+        if (to_update == "country") {
+            newValue = readString("\nEnter updated country: ");
+        } else {
+            long long phoneNum = readPhoneNum("\nEnter updated phone number: ");
+            
+            // Convert the phone number to a string using sprintf
+            char phoneStr[50];
+            sprintf(phoneStr, "%lld", phoneNum);
+            newValue = phoneStr;
+        }
+        
+        updateRes = sql_update_account(account.id,to_update,newValue);
+        if (!updateRes) {
+            printf("update account failed. Please try again.\n");
+        }
+    } while (!updateRes);
+    success(*u);
 }
 
 
@@ -89,14 +116,12 @@ void createNewAcc(struct User* u)
     bool creationResult;
     system("clear");
     do {
-        printf("\t\t\t===== New record =====\n");
+        printf("\t\t\t===== New Account =====\n");
 
         // Prompt and read the account type
         newAcc.type = readAccountType();
-        printf("Selected account type: %d\n", newAcc.type);
 
         newAcc.balance = readBalance("\nEnter amount to deposit: $");
-        printf("Amount deposited: $%.2f\n", newAcc.balance);
 
         // Prompt and read the Date
         char* date = readDate();
@@ -223,4 +248,61 @@ long long readPhoneNum(char* prompt) {
         }
     }
     return phoneNumber;
+}
+
+enum AccountType readAccountType() {
+    int choice;
+
+    printf("Select Account Type:\n");
+    printf("1. Fixed01\n");
+    printf("2. Fixed02\n");
+    printf("3. Fixed03\n");
+    printf("4. Saving\n");
+    printf("5. Current\n");
+
+    printf("Enter your choice: ");
+
+    while (1) {
+        scanf("%d", &choice);
+        flushInputBuffer();
+
+        switch (choice) {
+            case 1:
+                return AccountTypeFixed01;
+            case 2:
+                return AccountTypeFixed02;
+            case 3:
+                return AccountTypeFixed03;
+            case 4:
+                return AccountTypeSaving;
+            case 5:
+                return AccountTypeCurrent;
+            default:
+                printf("Invalid account type. Please enter a valid choice.\n");
+        }
+    }
+}
+
+char* chooseUpdateOption() {
+    int choice;
+
+    printf("Select an option:\n");
+    printf("1. Country\n");
+    printf("2. Phone Number\n");
+
+    printf("Enter your choice: ");
+
+    while (1) {
+        scanf("%d", &choice);
+        flushInputBuffer();
+
+        switch (choice) {
+            case 1:
+                return "country";
+            case 2:
+                return "phone";
+            default:
+                printf("Invalid option. Please enter a valid choice.\n");
+        }
+    }
 }
