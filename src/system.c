@@ -153,6 +153,58 @@ void checkAccountDetails(struct User* u) {
     }
 }
 
+// void checkAllAccounts(struct User* u)
+// {
+
+// }
+
+void transferOwnership(struct User* u) {
+    char input[50];
+    system("clear");
+    while(1) {
+        printf("\t\t\t===== Transfer Ownership =====\n");
+        printf("Enter the account ID you want to transfer or \\back to return: ");
+        scanf("%s", input);
+        if (strcmp(input, "\\back") == 0) {
+            mainOrExit(*u);
+            return;
+        }
+
+        // Call sql_select_account to retrieve the account
+        struct Account account = sql_select_account(input);
+
+        if (account.user == NULL)
+        {
+            printf("Account not found.\n");
+            continue;
+        }
+    
+        if (account.user->id != u->id)
+        {
+            printf("The account does not belong to the user.\n");
+            continue;
+        }
+        
+        char* new_owner_id = readString("Enter the id of the new owner: ");
+        printf("%s",new_owner_id);
+
+        // Call sql_select_account to retrieve the account
+        struct Account newOwnerAcc = sql_select_account(new_owner_id);
+
+        if (newOwnerAcc.user == NULL)
+        {
+            printf("Account not found.\n");
+            continue;
+        }
+        if (!sql_update_account(account.id,"user_id",new_owner_id)) {
+            printf("Transfer account failed.\n");
+        } else {
+            break;
+        }
+    }
+    success(*u);
+}
+
 void success(struct User u)
 {
     printf("\n✔ Success!\n\n");

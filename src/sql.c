@@ -238,10 +238,10 @@ struct Account sql_select_account(char* acc_id)
 }
 
 bool sql_update_account(uint64_t account_id, char* to_update, char* newValue) {
-    if (strcmp(to_update, "country") != 0 && strcmp(to_update, "phone") != 0 ) {
-        printf("Error: can only update country or phone number.");
-        return false;
-    }
+    // if (strcmp(to_update, "country") != 0 && strcmp(to_update, "phone") != 0 ) {
+    //     printf("Error: can only update country or phone number.");
+    //     return false;
+    // }
     char account_id_str[21];
     sprintf(account_id_str, "%lu", account_id); // convert from uint64 to string
     if (!sql_update(account_id_str, newValue, "Accounts", to_update)) {

@@ -24,12 +24,6 @@ enum AccountType {
 
 extern const char* AccountTypeStrings[NumAccountTypes];
 
-// struct Date {
-//     int day;
-//     int month;
-//     int year;
-// };
-
 // struct Country {
 //     char name[50];
 //     char code[4];
@@ -75,9 +69,10 @@ void mainMenu(struct User u);
 void createNewAcc(struct User* u);
 void updateAccountInfo(struct User* u);
 void checkAccountDetails(struct User* u);
+// void checkAllAccounts(struct User* u);
+void transferOwnership(struct User* u);
 void success(struct User u);
 void mainOrExit(struct User u);
-// void checkAllAccounts(struct User u);
 // void updateAccountInfo(struct User u);
 
 // sql
@@ -99,6 +94,7 @@ int readInteger(char* prompt);
 double readBalance(char* prompt);
 long long readPhoneNum(char* prompt);
 char* readDate();
+uint64_t readAccountId(char* prompt);
 
 
 void flushInputBuffer();

@@ -37,7 +37,7 @@ void mainMenu(struct User u)
         // here
         break;
     case 4:
-        // checkAllAccounts(u);
+        // checkAllAccounts(&u);
         break;
     case 5:
         // student TODO : add your **Make transaction** function
@@ -49,7 +49,7 @@ void mainMenu(struct User u)
         break;
     case 7:
         // student TODO : add your **Transfer owner** function
-        // here
+        transferOwnership(&u);
         break;
     case 8:
         exit(1);
