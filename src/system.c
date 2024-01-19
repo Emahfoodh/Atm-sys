@@ -8,32 +8,6 @@
 enum AccountType readAccountType();
 char* chooseUpdateOption();
 
-void success(struct User u)
-{
-    printf("\n✔ Success!\n\n");
-    mainOrExit(u);
-}
-
-void mainOrExit(struct User u) {
-    int option;
-    while (1) {
-        printf("Enter 1 to go to the main menu and 0 to exit!\n");
-        scanf("%d", &option);
-        flushInputBuffer();
-        
-        if (option == 1) {
-            mainMenu(u);
-            break; // Exit the loop after mainMenu() is executed
-        }
-        else if (option == 0) {
-            exit(1);
-        }
-        else {
-            printf("Insert a valid operation!\n");
-        }
-    }
-}
-
 void registerUser() 
 {
     struct User newUser;
@@ -57,58 +31,6 @@ void registerUser()
     } while (!registRes);
     success(newUser);
 }
-
-void updateAccountInfo(struct User* u)
-{
-
-    char input[50];
-    bool updateRes;
-    system("clear");
-    do {
-        printf("\t\t\t===== Update Account Info =====\n");
-        printf("Enter the account ID you want to update or \\back to return: ");
-        scanf("%s", input);
-        if (strcmp(input, "\\back") == 0){
-            mainOrExit(*u);
-            return;
-        }
-
-        // Call sql_select_account to retrieve the account
-        struct Account account = sql_select_account(input);
-
-        if (account.user == NULL)
-        {
-            printf("Account not found.\n");
-            return;
-        }
-    
-        if (account.user->id != u->id)
-        {
-            printf("The account does not belong to the user.\n");
-            return;
-        }    
-
-        char* to_update = chooseUpdateOption();
-        char* newValue;
-        if (to_update == "country") {
-            newValue = readString("\nEnter updated country: ");
-        } else {
-            long long phoneNum = readPhoneNum("\nEnter updated phone number: ");
-            
-            // Convert the phone number to a string using sprintf
-            char phoneStr[50];
-            sprintf(phoneStr, "%lld", phoneNum);
-            newValue = phoneStr;
-        }
-        
-        updateRes = sql_update_account(account.id,to_update,newValue);
-        if (!updateRes) {
-            printf("update account failed. Please try again.\n");
-        }
-    } while (!updateRes);
-    success(*u);
-}
-
 
 void createNewAcc(struct User* u)
 {
@@ -142,6 +64,119 @@ void createNewAcc(struct User* u)
         }
     } while (!creationResult);
     success(*u);
+}
+
+
+void updateAccountInfo(struct User* u)
+{
+    char input[50];
+    system("clear");
+    while(1) {
+        printf("\t\t\t===== Update Account Info =====\n");
+        printf("Enter the account ID you want to update or \\back to return: ");
+        scanf("%s", input);
+        if (strcmp(input, "\\back") == 0){
+            mainOrExit(*u);
+            return;
+        }
+
+        // Call sql_select_account to retrieve the account
+        struct Account account = sql_select_account(input);
+
+        if (account.user == NULL)
+        {
+            printf("Account not found.\n");
+            continue;
+        }
+    
+        if (account.user->id != u->id)
+        {
+            printf("The account does not belong to the user.\n");
+            continue;
+        }    
+
+        char* to_update = chooseUpdateOption();
+        char* newValue;
+        if (to_update == "country") {
+            newValue = readString("\nEnter updated country: ");
+        } else {
+            long long phoneNum = readPhoneNum("\nEnter updated phone number: ");
+            
+            // Convert the phone number to a string using sprintf
+            char phoneStr[50];
+            sprintf(phoneStr, "%lld", phoneNum);
+            newValue = phoneStr;
+        }
+        
+        if (!sql_update_account(account.id,to_update,newValue)) {
+            printf("update account failed. Please try again.\n");
+        } else {
+            break;
+        }
+    }
+    success(*u);
+}
+
+
+void checkAccountDetails(struct User* u) {
+    char input[50];
+    system("clear");
+    while(1) {
+        printf("\t\t\t===== Check Account Details =====\n");
+        printf("Enter the account ID you want to check or \\back to return: ");
+        scanf("%s", input);
+        if (strcmp(input, "\\back") == 0) {
+            mainOrExit(*u);
+            return;
+        }
+
+        // Call sql_select_account to retrieve the account
+        struct Account account = sql_select_account(input);
+
+        if (account.user == NULL)
+        {
+            printf("Account not found.\n");
+            continue;
+        }
+    
+        if (account.user->id != u->id)
+        {
+            printf("The account does not belong to the user.\n");
+            continue;
+        }
+        // Print account details
+        printf("Account ID: %ld\n", account.id);
+        printf("Country: %s\n", account.country);
+        printf("Phone number: %lld\n", account.phone);
+        printf("Amount deposited: $%.2lf\n", account.balance);
+        printf("Account type: %s\n", AccountTypeStrings[account.type]);
+    }
+}
+
+void success(struct User u)
+{
+    printf("\n✔ Success!\n\n");
+    mainOrExit(u);
+}
+
+void mainOrExit(struct User u) {
+    int option;
+    while (1) {
+        printf("Enter 1 to go to the main menu and 0 to exit!\n");
+        scanf("%d", &option);
+        flushInputBuffer();
+        
+        if (option == 1) {
+            mainMenu(u);
+            break; // Exit the loop after mainMenu() is executed
+        }
+        else if (option == 0) {
+            exit(1);
+        }
+        else {
+            printf("Insert a valid operation!\n");
+        }
+    }
 }
 
 char* readDate() {
@@ -229,6 +264,31 @@ char* readString(char* print)
             flushInputBuffer();  // Clear the input buffer
         }
     } // Loop until a valid input is provided
+}
+
+int readInteger(char* prompt) {
+    int value;
+    int result;
+
+    while (1) {
+        printf("%s", prompt);
+        result = scanf("%d", &value);
+        flushInputBuffer();
+
+        // Check if the input was successfully converted to an integer
+        if (result == 1) {
+            // Check if the value is a positive number
+            if (value <= 0) {
+                printf("Invalid input. Please enter a valid positive number.\n");
+            } else {
+                break;  // Valid input, break out of the loop
+            }
+        } else {
+            printf("Invalid input. Please enter a valid integer.\n");
+        }
+    }
+
+    return value;
 }
 
 long long readPhoneNum(char* prompt) {

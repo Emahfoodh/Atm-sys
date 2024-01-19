@@ -12,12 +12,12 @@
 static bool sql_update(char* key_value,char* newvalue,char* table, char* columnName);
 int usercallback(void *data, int rowsCount, char **rowsValues, char **coulmnNames);
 int accountCallback(void* data, int rowsCount, char** rowsValues, char** columnNames);
-char* get_primary_key(char* table);
+char* get_primary_key(char* table); // thanks chat gpt
 const char* AccountTypeStrings[NumAccountTypes] = {
     "fixed01",
     "fixed02",
     "fixed03",
-    "saving",
+    "savings",
     "current"
 };
 
@@ -291,8 +291,12 @@ int accountCallback(void* data, int rowsCount, char** rowsValues, char** columnN
         }
         else if (strcmp(columnNames[i], "type") == 0)
         {
-            // Assuming the type field is stored as an integer in the Accounts table
-            account->type = (enum AccountType)atoi(rowsValues[i]);
+            for (int j = 0; j < NumAccountTypes; j++) {
+                if (strcmp(rowsValues[i], AccountTypeStrings[j]) == 0) {
+                    account->type = j;
+                    break;
+                }
+            }
         }
         else if (strcmp(columnNames[i], "balance") == 0)
         {

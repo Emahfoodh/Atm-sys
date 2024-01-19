@@ -22,6 +22,8 @@ enum AccountType {
     NumAccountTypes
 };
 
+extern const char* AccountTypeStrings[NumAccountTypes];
+
 // struct Date {
 //     int day;
 //     int month;
@@ -72,6 +74,7 @@ void registerUser();
 void mainMenu(struct User u);
 void createNewAcc(struct User* u);
 void updateAccountInfo(struct User* u);
+void checkAccountDetails(struct User* u);
 void success(struct User u);
 void mainOrExit(struct User u);
 // void checkAllAccounts(struct User u);
@@ -92,6 +95,7 @@ long file_size(const char* fileName);
 // void printUser(struct User user);
 
 char* readString(char* print);
+int readInteger(char* prompt);
 double readBalance(char* prompt);
 long long readPhoneNum(char* prompt);
 char* readDate();

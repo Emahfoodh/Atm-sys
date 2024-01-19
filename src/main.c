@@ -33,6 +33,7 @@ void mainMenu(struct User u)
         break;
     case 3:
         // student TODO : add your **Check the details of existing accounts** function
+        checkAccountDetails(&u);
         // here
         break;
     case 4:
