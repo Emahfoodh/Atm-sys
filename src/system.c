@@ -117,7 +117,6 @@ void updateAccountInfo(struct User* u)
     success(*u);
 }
 
-
 void checkAccountDetails(struct User* u) {
     char input[50];
     system("clear");
@@ -153,10 +152,45 @@ void checkAccountDetails(struct User* u) {
     }
 }
 
-// void checkAllAccounts(struct User* u)
-// {
+void checkAllAccounts(struct User* u) {
+    sql_print_user_accounts(*u);
+}
 
-// }
+void removeAccount(struct User* u) {
+    char input[50];
+    system("clear");
+    while(1) {
+        printf("\t\t\t===== Remove Account =====\n");
+        printf("Enter the account ID you want to remove or \\back to return: ");
+        scanf("%s", input);
+        if (strcmp(input, "\\back") == 0) {
+            mainOrExit(*u);
+            return;
+        }
+
+        // Call sql_select_account to retrieve the account
+        struct Account account = sql_select_account(input);
+
+        if (account.user == NULL)
+        {
+            printf("Account not found.\n");
+            continue;
+        }
+    
+        if (account.user->id != u->id)
+        {
+            printf("The account does not belong to the user.\n");
+            continue;
+        }
+
+        if (!sql_remove_account(input)) {
+            printf("remove account failed. Please try again.\n");
+        } else {
+            break;
+        }
+    }
+    success(*u);
+}
 
 void transferOwnership(struct User* u) {
     char input[50];

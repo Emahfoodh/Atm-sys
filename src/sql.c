@@ -250,6 +250,54 @@ bool sql_update_account(uint64_t account_id, char* to_update, char* newValue) {
     return true;
 }
 
+bool sql_remove_account(char* accountId) {
+    char* rcerr = NULL;
+    char query[250];
+
+    // Prepare the SQL query to delete the account
+    sprintf(query, "DELETE FROM Accounts WHERE account_id = %s;", accountId);
+
+    // Execute the query
+    int rc = sqlite3_exec(db, query, NULL, NULL, &rcerr);
+
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Error removing account: %s\n", rcerr);
+        sqlite3_free(rcerr);
+        return false; 
+    }
+
+    return true;
+}
+
+
+void sql_print_user_accounts(struct User user)
+{
+    // Get all the accounts related to the user
+    char query[250];
+    sprintf(query, "SELECT * FROM Accounts WHERE user_id = %lu;", user.id);  // Use %lu for uint64_t
+
+    char* rcerr = NULL;
+    int rc = sqlite3_exec(db, query, accountCallback, user.accounts, &rcerr);
+    if (rc != SQLITE_OK) {
+        printf("%s\n", rcerr);
+        sqlite3_free(rcerr);
+        return;
+    }
+
+        // Iterate through the accounts and print their details
+        for (int i = 0; i < 4; i++) {  // Assuming 'num_accounts' is set correctly
+            struct Account* account = user.accounts[i];  // Create a pointer to the current account
+
+            printf("Account ID: %lu\n", account->id);   // Use -> with the pointer
+            printf("Country: %s\n", account->country);
+            printf("Phone number: %lld\n", account->phone);
+            printf("Amount deposited: $%.2lf\n", account->balance);
+            printf("Account type: %s\n", AccountTypeStrings[account->type]);
+            printf("\n");
+        }
+}
+
+
 int usercallback(void *data, int rowsCount, char **rowsValues, char **columnNames) {
     struct User *user = (struct User *)data;
     for (int i = 0; i < rowsCount; i++) {

@@ -2,6 +2,7 @@ fix account id
 country 3
 update account info if both
 
+sql_print_user_accounts     Segmentation fault (core dumped)
 
 id must be entered by user
 user name must not have whitespaces
