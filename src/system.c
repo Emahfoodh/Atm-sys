@@ -7,6 +7,7 @@
 
 enum AccountType readAccountType();
 char* chooseUpdateOption();
+double TransectionAmount();
 
 void registerUser() 
 {
@@ -154,6 +155,47 @@ void checkAccountDetails(struct User* u) {
 
 void checkAllAccounts(struct User* u) {
     sql_print_user_accounts(*u);
+}
+
+void makeTransaction(struct User* u) {
+        char input[50];
+    system("clear");
+    while(1) {
+        printf("\t\t\t===== Remove Account =====\n");
+        printf("Enter the account ID for the transaction or \\back to return: ");
+        scanf("%s", input);
+        if (strcmp(input, "\\back") == 0) {
+            mainOrExit(*u);
+            return;
+        }
+
+        // Call sql_select_account to retrieve the account
+        struct Account account = sql_select_account(input);
+
+        if (account.user == NULL)
+        {
+            printf("Account not found.\n");
+            continue;
+        }
+    
+        if (account.user->id != u->id)
+        {
+            printf("The account does not belong to the user.\n");
+            continue;
+        }
+
+        double amount = TransectionAmount();
+        double newValue = account.balance + amount;
+        char newValue_str[20];
+        sprintf(newValue_str, "%.2lf", newValue);
+
+        if (!sql_update_account(account.id,"balance",newValue_str)) {
+            printf("Transaction failed. Please try again.\n");
+        } else {
+            break;
+        }
+    }
+    success(*u);
 }
 
 void removeAccount(struct User* u) {
@@ -319,7 +361,7 @@ double readBalance(char* prompt) {
             if (value <= 0) {
                 printf("Invalid input. Please enter a valid positive number.\n");
             } else if (value > DBL_MAX) {
-                printf("Deposit amount is too large.\n");
+                printf("Amount is too large.\n");
             // } else if (hasMoreThanTwoDecimalPlaces(value)) {
             //     printf("Invalid balance. Please enter a valid number with at most two decimal places.\n");
             } else {
@@ -449,6 +491,29 @@ char* chooseUpdateOption() {
                 return "phone";
             default:
                 printf("Invalid option. Please enter a valid choice.\n");
+        }
+    }
+}
+
+
+double TransectionAmount() {
+    int choice;
+
+    printf("Select an option:\n");
+    printf("1. Deposit\n");
+    printf("2. Withdraw\n");
+
+    printf("Enter your choice: ");
+
+    while (1) {
+        scanf("%d", &choice);
+        flushInputBuffer();
+
+        if (choice == 1 || choice == 2) {
+            double amount = readBalance(choice == 1 ? "Enter the amount to deposit: " : "Enter the amount to withdraw: ");
+            return choice == 1 ? amount : -amount;
+        } else {
+            printf("Invalid option. Please enter a valid choice.\n");
         }
     }
 }
