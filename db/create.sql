@@ -18,7 +18,7 @@ CREATE TABLE Accounts (
     ),
     date DATE NOT NULL,
     balance DOUBLE NOT NULL,
-    country VARCHAR(3) NOT NULL CHECK (LENGTH(country) = 3),
+    country VARCHAR(20) NOT NULL,
     phone VARCHAR(10) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE NO ACTION ON UPDATE NO ACTION NOT DEFERRABLE
 );

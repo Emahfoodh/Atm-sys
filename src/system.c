@@ -111,7 +111,6 @@ void updateAccountInfo(struct User* u)
     
         if (account.user->id != u->id)
         {
-            printf("%lu  %lu",account.user->id,u->id);
             printf("The account does not belong to the user.\n");
             continue;
         }    
@@ -184,7 +183,7 @@ void makeTransaction(struct User* u) {
     char input[50];
     system("clear");
     while(1) {
-        printf("\t\t\t===== Remove Account =====\n");
+        printf("\t\t\t===== Make Transaction =====\n");
         printf("Enter the account ID for the transaction or \\back to return: ");
         scanf("%s", input);
         if (strcmp(input, "\\back") == 0) {
@@ -215,6 +214,10 @@ void makeTransaction(struct User* u) {
         }
 
         double amount = TransectionAmount();
+        if (account.balance + amount < 0) {
+            printf("Transaction failed. Insufficient funds.\n");
+            continue;
+        }
         double newValue = account.balance + amount;
         char newValue_str[20];
         sprintf(newValue_str, "%.2lf", newValue);
@@ -256,7 +259,7 @@ void removeAccount(struct User* u) {
         }
 
         if (!sql_remove_account(input)) {
-            printf("remove account failed. Please try again.\n");
+            printf("Remove account failed. Please try again.\n");
         } else {
             break;
         }
@@ -390,7 +393,7 @@ double readBalance(char* prompt) {
             // Check if the value is a positive number with at most two decimal places
             if (value <= 0) {
                 printf("Invalid input. Please enter a valid positive number.\n");
-            } else if (value > DBL_MAX) {
+            } else if (value > 9999999) {
                 printf("Amount is too large.\n");
             // } else if (hasMoreThanTwoDecimalPlaces(value)) {
             //     printf("Invalid balance. Please enter a valid number with at most two decimal places.\n");
@@ -455,10 +458,10 @@ long long readPhoneNum(char* prompt) {
     while (1) {
         printf("%s ", prompt);
         if (scanf("%lld", &phoneNumber) == 1) {
-            if (phoneNumber >= 1000000LL && phoneNumber <= 999999999999999LL) {
+            if (phoneNumber >= 1000000LL && phoneNumber <= 9999999999LL) {
                 return phoneNumber;
             } else {
-                printf("Invalid input. Phone number must be between 7 and 15 digits.\n");
+                printf("Invalid input. Phone number must be between 7 and 10 digits.\n");
             }
         } else {
             printf("Invalid input. Please enter a valid phone number.\n");
