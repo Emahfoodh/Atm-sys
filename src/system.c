@@ -4,22 +4,39 @@
 #include <string.h>
 #include <unistd.h>
 #include <float.h>
+#include <ctype.h>
 
 enum AccountType readAccountType();
 char* chooseUpdateOption();
 double TransectionAmount();
+
+bool isValidUserName(char *username)
+{
+    for (int i = 0; i < strlen(username); i++)
+    {
+        if (!isalpha(username[i]) && username[i] != ' ')
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 void registerUser() 
 {
     struct User newUser;
     bool registRes;
     system("clear");
-    do {
+    while (1) {
         printf("\t\t\t===== Register =====\n");
         // Prompt and read the username
         char* username = readString("\n\n\n\n\n\t\t\t\tEnter username: ");
         strcpy(newUser.name, username);
         free(username); // Free the dynamically allocated memory
+        if (!isValidUserName(newUser.name)) {
+            printf("Account creation failed. Invalid username. Please enter a valid username.\n");
+            continue;
+        }
 
         // Prompt and read the password
         char password[50];
@@ -28,8 +45,10 @@ void registerUser()
         registRes = sql_insert_user(&newUser);
         if (!registRes) {
             printf("Account creation failed. Please try again.\n");
+        } else {
+            break;
         }
-    } while (!registRes);
+    }
     success(newUser);
 }
 
@@ -92,6 +111,7 @@ void updateAccountInfo(struct User* u)
     
         if (account.user->id != u->id)
         {
+            printf("%lu  %lu",account.user->id,u->id);
             printf("The account does not belong to the user.\n");
             continue;
         }    
@@ -150,15 +170,18 @@ void checkAccountDetails(struct User* u) {
         printf("Phone number: %lld\n", account.phone);
         printf("Amount deposited: $%.2lf\n", account.balance);
         printf("Account type: %s\n", AccountTypeStrings[account.type]);
+        printInterestAmount(account);
     }
 }
 
+
 void checkAllAccounts(struct User* u) {
-    sql_print_user_accounts(*u);
+    sql_print_owned_account_ids(u->id);
+    success(*u);
 }
 
 void makeTransaction(struct User* u) {
-        char input[50];
+    char input[50];
     system("clear");
     while(1) {
         printf("\t\t\t===== Remove Account =====\n");
@@ -181,6 +204,13 @@ void makeTransaction(struct User* u) {
         if (account.user->id != u->id)
         {
             printf("The account does not belong to the user.\n");
+            continue;
+        }
+
+        // Check if the account type disallows transactions
+        if (account.type == AccountTypeFixed01 || account.type == AccountTypeFixed02 || account.type == AccountTypeFixed03)
+        {
+            printf("Transactions are only allowed for accounts of type saving and current.\n");
             continue;
         }
 
@@ -515,5 +545,41 @@ double TransectionAmount() {
         } else {
             printf("Invalid option. Please enter a valid choice.\n");
         }
+    }
+}
+
+void printInterestAmount(struct Account acc) {
+    double interestAmount = 0.0;
+
+    if (acc.type == AccountTypeSaving)
+    {
+        // Calculate monthly interest
+        interestAmount = (acc.balance * 0.07 / 12);
+        printf("You will gain $%.2lf of interest on day 10 of every month.\n", interestAmount);
+    }
+    else if (acc.type == AccountTypeFixed01)
+    {
+        // Calculate interest for one year from account creation date
+        int oneYearFromDeposit = atoi(acc.date) + 1;
+        interestAmount = (acc.balance * 0.04);
+        printf("You will gain $%.2lf interest on %02d/%02d/%04d (one year from account creation).\n", interestAmount, acc.date[3], acc.date[4], oneYearFromDeposit);
+    }
+    else if (acc.type == AccountTypeFixed02)
+    {
+        // Calculate interest for two years from account creation date
+        int twoYearsFromDeposit = atoi(acc.date) + 2;
+        interestAmount = (acc.balance * 0.05 * 2);
+        printf("You will gain $%.2lf interest on %02d/%02d/%04d (two years from account creation).\n", interestAmount, acc.date[3], acc.date[4], twoYearsFromDeposit);
+    }
+    else if (acc.type == AccountTypeFixed03)
+    {
+        // Calculate interest for three years from account creation date
+        int threeYearsFromDeposit = atoi(acc.date) + 3;
+        interestAmount = (acc.balance * 0.08 * 3);
+        printf("You will gain $%.2lf interest on %02d/%02d/%04d (three years from account creation).\n", interestAmount, acc.date[3], acc.date[4], threeYearsFromDeposit);
+    }
+    else
+    {
+        printf("You will not get interests because the account is of type current.\n");
     }
 }

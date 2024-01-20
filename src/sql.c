@@ -106,48 +106,6 @@ bool sql_create_account(struct User user, struct Account acc) {
     return true;
 }
 
-// char* get_primary_key(const char* table) {
-//     char* primary_key = NULL;
-//     char* query = NULL;
-//     char* errorMsg = NULL;
-
-//     // Prepare the query to retrieve table schema
-//     int query_length = sprintf(query, "SELECT sql FROM sqlite_master WHERE type='table' AND name='%s'", table);
-//     if (query_length == -1) {
-//         fprintf(stderr, "Failed to allocate memory for query.\n");
-//         return NULL;
-//     }
-
-//     // Execute the query
-//     int rc = sqlite3_exec(db, query, NULL, NULL, &errorMsg);
-//     if (rc != SQLITE_OK) {
-//         fprintf(stderr, "Failed to execute query: %s\n", errorMsg);
-//         sqlite3_free(errorMsg);
-//         free(query);
-//         return NULL;
-//     }
-
-//     const char* tableSchema = errorMsg;
-//     const char* primaryKeyStart = strstr(tableSchema, "PRIMARY KEY");
-
-//     if (primaryKeyStart != NULL) {
-//         // Find the closing parenthesis ')' after "PRIMARY KEY"
-//         const char* primaryKeyEnd = strchr(primaryKeyStart, ')');
-//         if (primaryKeyEnd != NULL) {
-//             // Allocate memory and copy the primary key definition
-//             size_t key_length = primaryKeyEnd - primaryKeyStart + 1;
-//             primary_key = malloc((key_length + 1) * sizeof(char));
-//             strncpy(primary_key, primaryKeyStart, key_length);
-//             primary_key[key_length] = '\0';
-//         }
-//     }
-
-//     // Clean up
-//     free(query);
-
-//     return primary_key;
-// }
-
 // Function to retrieve the primary key column name for a given table
 char* get_primary_key(char* table) {
     sqlite3_stmt *stmt;
@@ -199,10 +157,6 @@ static bool sql_update(char* key_value,char* newvalue,char* table, char* columnN
     return true;
 }
 
-// static char* get_key(char* table, struct User user) {
-    
-// }
-
 // Inactive the user
 bool sql_delete_user(struct User user) {
     char user_id[21];
@@ -224,7 +178,6 @@ struct Account sql_select_account(char* acc_id)
     sprintf(sql, "SELECT * FROM Accounts WHERE account_id = '%s';", acc_id);
     struct Account account;
     memset(&account, 0, sizeof(struct Account));
-
    
     int rc = sqlite3_exec(db, sql, accountCallback, &account, &rcerr);
     if (rc != SQLITE_OK)
@@ -238,10 +191,6 @@ struct Account sql_select_account(char* acc_id)
 }
 
 bool sql_update_account(uint64_t account_id, char* to_update, char* newValue) {
-    // if (strcmp(to_update, "country") != 0 && strcmp(to_update, "phone") != 0 ) {
-    //     printf("Error: can only update country or phone number.");
-    //     return false;
-    // }
     char account_id_str[21];
     sprintf(account_id_str, "%lu", account_id); // convert from uint64 to string
     if (!sql_update(account_id_str, newValue, "Accounts", to_update)) {
@@ -269,34 +218,39 @@ bool sql_remove_account(char* accountId) {
     return true;
 }
 
+uint64_t account_ids[100];
+int num_accounts = 0;
 
-void sql_print_user_accounts(struct User user)
-{
-    // Get all the accounts related to the user
-    char query[250];
-    sprintf(query, "SELECT * FROM Accounts WHERE user_id = %lu;", user.id);  // Use %lu for uint64_t
+int accountIDCallback(void* data, int rowsCount, char** rowsValues, char** columnNames) {
+    for (int i = 0; i < rowsCount; i++) {
+        if (strcmp(columnNames[i], "account_id") == 0) {
+            uint64_t account_id = strtoull(rowsValues[i], NULL, 10);
+            account_ids[num_accounts++] = account_id;
+        }
+    }
+    return 0;
+}
+
+void sql_print_owned_account_ids(uint64_t user_id) {
+    num_accounts = 0;
 
     char* rcerr = NULL;
-    int rc = sqlite3_exec(db, query, accountCallback, user.accounts, &rcerr);
+    char sql[250];
+    sprintf(sql, "SELECT account_id FROM Accounts WHERE user_id = %lu;", user_id);
+
+    int rc = sqlite3_exec(db, sql, accountIDCallback, NULL, &rcerr);
+
     if (rc != SQLITE_OK) {
-        printf("%s\n", rcerr);
+        printf("Error retrieving account IDs: %s\n", rcerr);
         sqlite3_free(rcerr);
         return;
     }
 
-        // Iterate through the accounts and print their details
-        for (int i = 0; i < 4; i++) {  // Assuming 'num_accounts' is set correctly
-            struct Account* account = user.accounts[i];  // Create a pointer to the current account
-
-            printf("Account ID: %lu\n", account->id);   // Use -> with the pointer
-            printf("Country: %s\n", account->country);
-            printf("Phone number: %lld\n", account->phone);
-            printf("Amount deposited: $%.2lf\n", account->balance);
-            printf("Account type: %s\n", AccountTypeStrings[account->type]);
-            printf("\n");
-        }
+    printf("Owned Account IDs:\n");
+    for (int i = 0; i < num_accounts; i++) {
+        printf("Account ID: %lu\n", account_ids[i]);
+    }
 }
-
 
 int usercallback(void *data, int rowsCount, char **rowsValues, char **columnNames) {
     struct User *user = (struct User *)data;
@@ -325,6 +279,7 @@ int accountCallback(void* data, int rowsCount, char** rowsValues, char** columnN
         if (strcmp(columnNames[i], "account_id") == 0)
         {
             account->id = strtoull(rowsValues[i], NULL, 10);
+            printf("%lu\n",account->id);
         }
         else if (strcmp(columnNames[i], "user_id") == 0)
         {

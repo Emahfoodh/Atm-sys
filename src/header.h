@@ -41,13 +41,13 @@ struct Account {
     char date[11];
 };
 
-struct Transaction {
-    uint64_t id;
-    struct User *sender;
-    struct User *receiver;
-    double amount;
-    time_t date; 
-};
+// struct Transaction {
+//     uint64_t id;
+//     struct User *sender;
+//     struct User *receiver;
+//     double amount;
+//     time_t date; 
+// };
 
 struct AccountTransfers {
     uint64_t id;
@@ -76,7 +76,6 @@ void removeAccount(struct User* u);
 void transferOwnership(struct User* u);
 void success(struct User u);
 void mainOrExit(struct User u);
-// void updateAccountInfo(struct User u);
 
 // sql
 void sql_connect();
@@ -84,6 +83,7 @@ bool sql_insert_user(struct User* newUser);
 struct User sql_select_user(char* username);
 bool sql_create_account(struct User user, struct Account acc);
 struct Account sql_select_account(char* acc_id);
+void sql_print_owned_account_ids(uint64_t user_id);
 bool sql_update_account(uint64_t account_id, char* to_update, char* newValue);
 bool sql_remove_account(char* accountId);
 bool sql_delete_user(struct User user);
@@ -92,7 +92,6 @@ void sql_print_user_accounts(struct User user);
 // file
 long file_size(const char* fileName);
 
-// void printUser(struct User user);
 
 char* readString(char* print);
 int readInteger(char* prompt);
@@ -104,3 +103,4 @@ uint64_t readAccountId(char* prompt);
 
 void flushInputBuffer();
 void getCurrentDate(char date[11]);
+void printInterestAmount(struct Account acc);

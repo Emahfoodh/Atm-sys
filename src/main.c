@@ -77,9 +77,10 @@ void startMenu(struct User *u)
         {
         case 1:
             loginMenu(u);
-            *u = sql_select_user(u->name);
-            if (strcmp(u->password,u->password) == 0)
+            struct User user_selected = sql_select_user(u->name);
+            if (strcmp(u->password,user_selected.password) == 0)
             {
+                (*u) = user_selected;
                 printf("\n\nPassword Match!\n");
             }
             else
@@ -105,38 +106,14 @@ void startMenu(struct User *u)
 };
 
 int main() {
-    // char* err = sql_connect();
-    // if (err != NULL) {
-    //     printf("Error: %s\n", err);
-    //     free(err);
-    //     return EXIT_FAILURE;
-    // }
     struct User u;
     sql_connect();
     startMenu(&u);
     mainMenu(u);
-    // initscr();
-    // clear();
-
-    // char* updateUser = sql_update_user(user,"Mena", "Users","name");
-    // if (updateUser != NULL) {
-    //     printf("Error: %s\n", updateUser);
-    //     // free(err);
-    //     return EXIT_FAILURE;
-    // }
 
     sqlite3_close(db);
     return EXIT_SUCCESS;
 }
-
-
-
-// void printUser(struct User user) {
-//     printf("ID: %ld\n", user.id);
-//     printf("Name: %s\n", user.name);
-//     printf("Password: %s\n", user.password);
-//     printf("Active: %s\n", user.Active ? "true" : "false");
-// }
 
 // This function is used to flush the input buffer
 void flushInputBuffer()
