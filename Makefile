@@ -5,7 +5,7 @@ OBJ_DIR := target
 objects := $(addprefix $(OBJ_DIR)/, main.o system.o auth.o sql.o f.o)
 
 atm : $(objects)
-	$(CC) -o $@ $^ -lncurses -lsqlite3
+	$(CC) -o $@ $^ -lsqlite3
 
 # Rule for compiling object files
 $(OBJ_DIR)/%.o: src/%.c src/header.h | $(OBJ_DIR)

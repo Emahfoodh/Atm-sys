@@ -30,7 +30,7 @@ void registerUser()
     while (1) {
         printf("\t\t\t===== Register =====\n");
         // Prompt and read the username
-        char* username = readString("\n\n\n\n\n\t\t\t\tEnter username: ");
+        char* username = readString("\nEnter username: ");
         strcpy(newUser.name, username);
         free(username); // Free the dynamically allocated memory
         if (!isValidUserName(newUser.name)) {
@@ -71,7 +71,11 @@ void createNewAcc(struct User* u)
         free(date); // Free the dynamically allocated memory
 
         // Prompt and read the username
-        char* coun = readString("\nEnter the country: ");
+        char* coun;
+        do {
+            coun = readString("\nEnter the country: ");
+        } while (!isValidUserName(coun));
+
         strcpy(newAcc.country, coun);
         free(coun); // Free the dynamically allocated memory
 

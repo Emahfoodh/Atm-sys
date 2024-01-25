@@ -17,7 +17,7 @@ void loginMenu(struct User* u) {
 
 void readPassword(char pass[50]) {
     disableEcho();
-    char* password = readString("\n\n\n\n\n\t\t\t\tEnter the password: ");
+    char* password = readString("\nEnter the password: ");
     strcpy(pass, password);
     free(password);
     enableEcho();
