@@ -285,7 +285,6 @@ void transferOwnership(struct User* u) {
 
         // Call sql_select_account to retrieve the account
         struct Account account = sql_select_account(input);
-
         if (account.user == NULL)
         {
             printf("Account not found.\n");
@@ -298,18 +297,20 @@ void transferOwnership(struct User* u) {
             continue;
         }
         
-        char* new_owner_id = readString("Enter the id of the new owner: ");
-        printf("%s",new_owner_id);
+        char* new_owner_ur = readString("Enter the username of the new owner: ");
 
         // Call sql_select_account to retrieve the account
-        struct Account newOwnerAcc = sql_select_account(new_owner_id);
+        struct User newOwner = sql_select_user(new_owner_ur);
 
-        if (newOwnerAcc.user == NULL)
+        if (newOwner.name == NULL)
         {
-            printf("Account not found.\n");
+            printf("User not found.\n");
             continue;
         }
-        if (!sql_update_account(account.id,"user_id",new_owner_id)) {
+        char idStr[20];  // Assuming a maximum of 20 characters for the ID string
+        snprintf(idStr, sizeof(idStr), "%lu", newOwner.id);  // Convert id to a string
+
+        if (!sql_update_account(account.id, "user_id", idStr)) {
             printf("Transfer account failed.\n");
         } else {
             break;
