@@ -559,6 +559,9 @@ double TransectionAmount() {
 void printInterestAmount(struct Account acc) {
     double interestAmount = 0.0;
 
+    int year, month, day;
+    sscanf(acc.date, "%d/%d/%d", &year, &month, &day);
+
     if (acc.type == AccountTypeSaving)
     {
         // Calculate monthly interest
@@ -568,23 +571,32 @@ void printInterestAmount(struct Account acc) {
     else if (acc.type == AccountTypeFixed01)
     {
         // Calculate interest for one year from account creation date
-        int oneYearFromDeposit = atoi(acc.date) + 1;
-        interestAmount = (acc.balance * 0.04);
-        printf("You will gain $%.2lf interest on %02d/%02d/%04d (one year from account creation).\n", interestAmount, acc.date[3], acc.date[4], oneYearFromDeposit);
+        printf("%s\n", acc.date);
+
+        // int oneYearFromDeposit = atoi(acc.date) + 1;
+
+        interestAmount = acc.balance * 0.04;
+        printf("You will gain $%.2lf interest on %04d/%02d/%02d (one year from account creation).\n", interestAmount, year+1, month, day);
     }
     else if (acc.type == AccountTypeFixed02)
     {
         // Calculate interest for two years from account creation date
-        int twoYearsFromDeposit = atoi(acc.date) + 2;
-        interestAmount = (acc.balance * 0.05 * 2);
-        printf("You will gain $%.2lf interest on %02d/%02d/%04d (two years from account creation).\n", interestAmount, acc.date[3], acc.date[4], twoYearsFromDeposit);
+        printf("%s\n", acc.date);
+
+        // int twoYearsFromDeposit = atoi(acc.date) + 2;
+
+        interestAmount = acc.balance * 0.05 * 2;
+        printf("You will gain $%.2lf interest on %04d/%02d/%02d (two years from account creation).\n", interestAmount, year+2, month, day);
     }
     else if (acc.type == AccountTypeFixed03)
     {
         // Calculate interest for three years from account creation date
-        int threeYearsFromDeposit = atoi(acc.date) + 3;
-        interestAmount = (acc.balance * 0.08 * 3);
-        printf("You will gain $%.2lf interest on %02d/%02d/%04d (three years from account creation).\n", interestAmount, acc.date[3], acc.date[4], threeYearsFromDeposit);
+        printf("%s\n", acc.date);
+
+        // int threeYearsFromDeposit = atoi(acc.date) + 3;
+
+        interestAmount = acc.balance * 0.08 * 3;
+        printf("You will gain $%.2lf interest on %04d/%02d/%02d (three years from account creation).\n", interestAmount, year+3, month, day);
     }
     else
     {
